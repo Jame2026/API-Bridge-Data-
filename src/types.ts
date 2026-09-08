@@ -5,6 +5,16 @@ export type NavView =
   | 'projects'
   | 'ingest-guide';
 
+export type UserRole = 'admin' | 'auditor' | 'viewer';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatarUrl?: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -14,6 +24,9 @@ export interface Project {
   baseUrl: string;
   icon: string;
   color: string;
+  dbUrl?: string;
+  dbKey?: string;
+  modules?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +39,7 @@ export type ActionCategory =
   | 'page_view'
   | 'session_start'
   | 'settings_change'
+  | 'database_record'
   | 'other';
 
 export interface UserActivity {
@@ -33,7 +47,7 @@ export interface UserActivity {
   projectId: string;
   featureName: string;
   userId: string;
-  userEmail: string;
+  userEmail?: string;
   actionType: ActionCategory | string;
   metadata?: Record<string, any>;
   timestamp: string;
@@ -44,13 +58,17 @@ export interface FeatureUsageStat {
   count: number;
   percentage: number;
   uniqueUsers: number;
+  actionCount?: number;
+  percentageShare?: number;
+  uniqueUsersCount?: number;
 }
 
 export interface DailyTrendPoint {
   date: string;
-  formattedDate: string;
+  formattedDate?: string;
   eventCount: number;
-  userCount: number;
+  userCount?: number;
+  activeUsers?: number;
 }
 
 export interface TopUserStat {
@@ -75,8 +93,8 @@ export interface UsageMetricsSummary {
 export interface UsageReport {
   id: string;
   title: string;
-  projectId: string; // 'all' or specific project ID
-  dateRange: 'today' | '7d' | '30d' | '90d' | 'custom';
+  projectId: string;
+  dateRange: 'today' | '7d' | '30d' | '90d' | 'all' | 'custom';
   startDate?: string;
   endDate?: string;
   generatedAt: string;

@@ -98,16 +98,21 @@ export const aggregateUsageMetrics = (activities: UserActivity[]): UsageMetricsS
   const featureStats: FeatureUsageStat[] = Object.entries(featureCounts)
     .map(([featureName, data]) => ({
       featureName,
+      count: data.count,
       actionCount: data.count,
-      uniqueUsersCount: data.users.size,
+      percentage: totalEvents > 0 ? (data.count / totalEvents) * 100 : 0,
       percentageShare: totalEvents > 0 ? (data.count / totalEvents) * 100 : 0,
+      uniqueUsers: data.users.size,
+      uniqueUsersCount: data.users.size,
     }))
-    .sort((a, b) => b.actionCount - a.actionCount);
+    .sort((a, b) => (b.count || 0) - (a.count || 0));
 
   const dailyTrends: DailyTrendPoint[] = Object.entries(dailyCounts)
     .map(([date, data]) => ({
       date,
+      formattedDate: date,
       eventCount: data.count,
+      userCount: data.users.size,
       activeUsers: data.users.size,
     }))
     .sort((a, b) => a.date.localeCompare(b.date));

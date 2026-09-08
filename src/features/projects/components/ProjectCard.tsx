@@ -2,7 +2,7 @@ import React from 'react';
 import { Project } from '../../../types';
 import { Badge } from '../../../ui/primitives/Badge';
 import { Button } from '../../../ui/primitives/Button';
-import { Layers, Users, Activity, ExternalLink, Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, RefreshCw } from 'lucide-react';
 
 interface ProjectCardProps {
   project: Project;
@@ -13,6 +13,7 @@ interface ProjectCardProps {
   onSelect: (id: string) => void;
   onEdit: (project: Project) => void;
   onDelete: (id: string) => void;
+  onSync?: (project: Project) => void;
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
@@ -24,6 +25,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   onSelect,
   onEdit,
   onDelete,
+  onSync,
 }) => {
   return (
     <div
@@ -69,7 +71,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             <div className="text-[#4edea3] font-bold mt-0.5">{userCount}</div>
           </div>
           <div>
-            <div className="text-[10px] text-[#908fa0]">FEATURES</div>
+            <div className="text-[10px] text-[#908fa0]">MODULES</div>
             <div className="text-[#7bd0ff] font-bold mt-0.5">{featureCount}</div>
           </div>
         </div>
@@ -80,6 +82,15 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           {isSelected ? 'Active Scope' : 'Select Project'}
         </Button>
         <div className="flex items-center space-x-1">
+          {onSync && project.dbUrl && (
+            <Button
+              size="sm"
+              variant="ghost"
+              title="Extract real database records now"
+              onClick={() => onSync(project)}
+              icon={<RefreshCw className="w-3.5 h-3.5 text-[#4edea3]" />}
+            />
+          )}
           <Button size="sm" variant="ghost" onClick={() => onEdit(project)} icon={<Edit2 className="w-3.5 h-3.5" />} />
           <Button size="sm" variant="ghost" onClick={() => onDelete(project.id)} icon={<Trash2 className="w-3.5 h-3.5 text-[#ffb4ab]" />} />
         </div>

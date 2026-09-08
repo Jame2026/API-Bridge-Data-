@@ -8,15 +8,17 @@ import { exportActivitiesToCsv } from '../utils/exportUtils';
 import { Input } from '../ui/primitives/Input';
 import { Select } from '../ui/primitives/Select';
 import { Button } from '../ui/primitives/Button';
-import { ACTION_TYPE_OPTIONS } from '../config/constants';
-import { Search, Download, RefreshCw } from 'lucide-react';
+import { ACTION_TYPE_OPTIONS, DATE_RANGE_OPTIONS } from '../config/constants';
+import { Search, Download, RefreshCw, Filter } from 'lucide-react';
 
 export const ActivityExplorer: React.FC = () => {
   const { data: activities = [], isLoading, refetch } = useActivitiesQuery();
   const { data: projects = [] } = useProjectsQuery();
 
   const activeProjectId = useUiStore((s) => s.activeProjectId);
+  const setActiveProjectId = useUiStore((s) => s.setActiveProjectId);
   const dateRange = useUiStore((s) => s.dateRange);
+  const setDateRange = useUiStore((s) => s.setDateRange);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedActionType, setSelectedActionType] = useState('all');
@@ -47,6 +49,11 @@ export const ActivityExplorer: React.FC = () => {
       return true;
     });
   }, [activities, activeProjectId, selectedActionType, debouncedSearch, dateRange]);
+
+  const projectOptions = [
+    { value: 'all', label: 'All Projects' },
+    ...projects.map((p) => ({ value: p.id, label: p.name })),
+  ];
 
   return (
     <div className="space-y-6 pb-12">
@@ -87,7 +94,21 @@ export const ActivityExplorer: React.FC = () => {
             icon={<Search className="w-4 h-4" />}
           />
         </div>
-        <div className="w-full md:w-56">
+        <div className="w-full md:w-48">
+          <Select
+            options={projectOptions}
+            value={activeProjectId}
+            onChange={(e) => setActiveProjectId(e.target.value)}
+          />
+        </div>
+        <div className="w-full md:w-44">
+          <Select
+            options={DATE_RANGE_OPTIONS}
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value as any)}
+          />
+        </div>
+        <div className="w-full md:w-44">
           <Select
             options={ACTION_TYPE_OPTIONS}
             value={selectedActionType}

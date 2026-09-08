@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { useProjectsQuery, useSaveProjectMutation, useDeleteProjectMutation } from '../features/projects/api/projects.queries';
-import { useActivitiesQuery } from '../features/activities/api/activities.queries';
+import { useActivitiesQuery, useLogActivitiesBatchMutation } from '../features/activities/api/activities.queries';
 import { useUiStore } from '../state/uiStore';
 import { ProjectCard } from '../features/projects/components/ProjectCard';
 import { ProjectModal } from '../features/projects/components/ProjectModal';
 import { Button } from '../ui/primitives/Button';
 import { Project } from '../types';
-import { Plus, FolderKanban } from 'lucide-react';
+import { extractProjectModules } from '../services/dataExtractor';
+import { Plus } from 'lucide-react';
 
 export const Projects: React.FC = () => {
   const { data: projects = [] } = useProjectsQuery();
   const { data: activities = [] } = useActivitiesQuery();
   const saveProjectMutation = useSaveProjectMutation();
   const deleteProjectMutation = useDeleteProjectMutation();
+  const logBatchMutation = useLogActivitiesBatchMutation();
 
   const activeProjectId = useUiStore((s) => s.activeProjectId);
   const setActiveProjectId = useUiStore((s) => s.setActiveProjectId);
@@ -31,9 +33,36 @@ export const Projects: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (project: Project) => {
+  const handleSync = async (project: Project) => {
+    addToast(`Extracting modules for "${project.name}"...`, 'info');
+    const { success, results, totalExtracted } = await extractProjectModules(project);
+
+    if (totalExtracted > 0) {
+      const allExtracted = results
+        .filter((res) => res.status === 'success')
+        .flatMap((res) => res.activities);
+
+      await logBatchMutation.mutateAsync(allExtracted);
+      addToast(`Extracted and stored ${totalExtracted} live records!`, 'success');
+    }
+
+    const failed = results.filter((r) => r.status === 'error');
+    if (failed.length > 0) {
+      const firstErr = failed[0];
+      addToast(`⚠️ Extraction issue on [${firstErr.module}]: ${firstErr.error}`, 'error');
+    } else if (totalExtracted === 0 && success) {
+      addToast(`Connected to database. Target tables currently have 0 rows.`, 'info');
+    }
+  };
+
+  const handleSave = async (project: Project) => {
     saveProjectMutation.mutate(project);
+    setActiveProjectId(project.id);
     addToast(`Project "${project.name}" saved!`, 'success');
+
+    if (project.dbUrl && project.dbKey && project.modules && project.modules.length > 0) {
+      await handleSync(project);
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -44,12 +73,11 @@ export const Projects: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#141822] border border-[#262a33] p-5 rounded-2xl shadow-lg">
         <div>
           <h1 className="text-lg font-bold text-white tracking-tight">Internal Project Workspaces</h1>
           <p className="text-xs text-[#908fa0] mt-1">
-            Organize applications, microservices, and user telemetry sources into isolated environments.
+            Connect systems via REST APIs to pull real-time database records and store backups.
           </p>
         </div>
         <Button variant="primary" icon={<Plus className="w-4 h-4" />} onClick={handleNew}>
@@ -57,7 +85,6 @@ export const Projects: React.FC = () => {
         </Button>
       </div>
 
-      {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {projects.map((proj) => {
           const projActivities = activities.filter((a) => a.projectId === proj.id);
@@ -75,12 +102,12 @@ export const Projects: React.FC = () => {
               onSelect={setActiveProjectId}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onSync={handleSync}
             />
           );
         })}
       </div>
 
-      {/* Modal */}
       <ProjectModal
         isOpen={isModalOpen}
         onClose={() => {

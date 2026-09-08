@@ -23,3 +23,19 @@ export function useLogActivityMutation() {
     },
   });
 }
+
+export function useLogActivitiesBatchMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: activitiesApi.logActivitiesBatch,
+    onSuccess: (newActivities) => {
+      queryClient.setQueryData<UserActivity[]>(ACTIVITIES_QUERY_KEY, (prev) => {
+        if (!prev) return newActivities;
+        const newIds = new Set(newActivities.map((a) => a.id));
+        const filtered = prev.filter((a) => !newIds.has(a.id));
+        return [...newActivities, ...filtered];
+      });
+    },
+  });
+}

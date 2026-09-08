@@ -7,6 +7,9 @@ export interface Project {
   baseUrl: string;
   icon: string;
   color: string;
+  dbUrl?: string;
+  dbKey?: string;
+  modules?: string[];
   createdAt: string;
   updatedAt: string;
 }

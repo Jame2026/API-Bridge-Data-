@@ -22,7 +22,7 @@ interface UiState {
 export const useUiStore = create<UiState>((set) => ({
   sidebarOpen: true,
   activeProjectId: 'all',
-  dateRange: '7d',
+  dateRange: 'all',
   toasts: [],
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
