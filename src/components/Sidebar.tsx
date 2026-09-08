@@ -92,14 +92,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onChange={(e) => onSelectBridge(e.target.value)}
             className="w-full mt-1 bg-[#181c24] border border-[#262a33] rounded-md px-2 py-1.5 text-xs text-[#dfe2ee] font-sans focus:outline-none focus:border-[#8083ff]"
           >
-            {bridges.map(b => (
-              <option key={b.id} value={b.id} className="bg-[#181c24]">
-                {b.name} ({b.tag})
+            {bridges.length === 0 ? (
+              <option value="" className="bg-[#181c24]">
+                No pipelines created
               </option>
-            ))}
+            ) : (
+              bridges.map(b => (
+                <option key={b.id} value={b.id} className="bg-[#181c24]">
+                  {b.name} ({b.tag})
+                </option>
+              ))
+            )}
           </select>
 
-          {selectedBridge && (
+          {selectedBridge ? (
             <div className="mt-2 p-2 bg-[#181c24]/70 border border-[#262a33] rounded-md text-[11px] font-mono space-y-1">
               <div className="flex items-center justify-between text-[#908fa0]">
                 <span>METHOD:</span>
@@ -116,6 +122,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </span>
               </div>
             </div>
+          ) : (
+            <button
+              onClick={onOpenNewBridgeModal}
+              className="w-full mt-2 p-2 bg-[#181c24]/50 border border-dashed border-[#262a33] hover:border-[#8083ff]/50 rounded-md text-[11px] text-[#908fa0] hover:text-white flex items-center justify-center space-x-1 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">add</span>
+              <span>Connect API Pipeline</span>
+            </button>
           )}
         </div>
       </div>

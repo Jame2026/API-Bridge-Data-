@@ -125,63 +125,7 @@ BEGIN
   END IF;
 END $$;
 
--- 8. SEED INITIAL DEMO BRIDGES (Optional)
-INSERT INTO public.bridges (
-  id, uuid, name, service, category, tag, method, endpoint, auth_type,
-  sync_interval, cron_expression, last_sync, records_synced, status, status_text, cluster
-) VALUES
-(
-  'bridge-shopify-orders',
-  '9f83a21a-4d76-4d10-bf92-8051a66a1a01',
-  'Shopify Store Orders Ingest',
-  'shopify',
-  'ecommerce',
-  'v2024.1',
-  'GET',
-  'https://mystore.myshopify.com/admin/api/2024-01/orders.json',
-  'Bearer Token',
-  '5m',
-  '*/5 * * * *',
-  '2m ago',
-  48291,
-  'healthy',
-  'All shards operational',
-  'us-east-cluster-01'
-),
-(
-  'bridge-zendesk-tickets',
-  '28a9947f-85d1-4db5-9e6b-cf848e028b02',
-  'Zendesk Support High Priority Tickets',
-  'zendesk',
-  'desk',
-  'v2',
-  'GET',
-  'https://acmesupport.zendesk.com/api/v2/tickets.json',
-  'OAuth 2.0 (PKCE)',
-  '15m',
-  '*/15 * * * *',
-  '14m ago',
-  12850,
-  'healthy',
-  'OAuth refreshed 1h ago',
-  'eu-west-cluster-02'
-),
-(
-  'bridge-jira-cloud',
-  '7b1219ee-341a-4fe9-b001-f1110091ca03',
-  'Jira Cloud Incident Stream',
-  'jira',
-  'devops',
-  'v3',
-  'GET',
-  'https://corp-jira.atlassian.net/rest/api/3/search',
-  'API Key (Vault)',
-  '10m',
-  '*/10 * * * *',
-  '8m ago',
-  6420,
-  'degraded',
-  '429 Backoff Active (retry in 45s)',
-  'us-east-cluster-01'
-)
-ON CONFLICT (id) DO NOTHING;
+-- 8. INITIAL DATA
+-- Clean initialization: Tables start empty, ready for your application's custom bridges and pipelines.
+-- You can add bridges via the API Data Bridge web app or through your own backend services.
+

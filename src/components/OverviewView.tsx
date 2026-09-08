@@ -64,82 +64,78 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     downloadAnchor.remove();
   };
 
+  const totalRecords = bridges.reduce((acc, b) => acc + (b.recordsSynced || 0), 0);
+  const totalRecordsFormatted = totalRecords > 1000000 
+    ? `${(totalRecords / 1000000).toFixed(2)}M`
+    : totalRecords > 1000
+    ? `${(totalRecords / 1000).toFixed(1)}k`
+    : totalRecords.toString();
+
+  const uptimeLabel = bridges.length === 0 
+    ? 'Ready' 
+    : healthyCount === bridges.length 
+    ? '100% Healthy' 
+    : `${Math.round((healthyCount / Math.max(bridges.length, 1)) * 100)}% Operational`;
+
   return (
-    <div className="space-y-4 p-5 max-w-[1600px] mx-auto">
-      {/* Top Banner / Cluster Status & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#181c24] border border-[#262a33] p-3.5 rounded-xl">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-[#262a33] border border-[#31353e] text-[#c0c1ff]">
-            <span className="material-symbols-outlined text-[20px]">hub</span>
+    <div className="space-y-5 p-5 max-w-[1600px] mx-auto">
+      {/* Top Banner & Control Plane Status */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#181c24] border border-[#262a33] p-4 rounded-xl shadow-lg">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-10 h-10 rounded-xl bg-[#8083ff]/15 border border-[#8083ff]/30 flex items-center justify-center text-[#8083ff]">
+            <span className="material-symbols-outlined text-[24px]">hub</span>
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-base font-bold text-white tracking-tight">
-                Active Telemetry Mesh
-              </h1>
-              <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-[#262a33] text-[#7bd0ff] border border-[#31353e]">
-                cluster-us-east.sync.v2
+              <h1 className="text-base font-bold text-white tracking-tight">Active Integration Pipelines</h1>
+              <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#4edea3]/15 text-[#4edea3] border border-[#4edea3]/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
+                <span>{bridges.length} PIPELINES ACTIVE</span>
               </span>
             </div>
-            <p className="text-xs text-[#908fa0]">
-              Operational dashboard for real-time pipeline status, API quotas, latency telemetry, and schema health.
+            <p className="text-xs text-[#908fa0] mt-0.5">
+              Enterprise ingestion mesh orchestrating API endpoints, authorization tokens, and schema transformations.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          {/* Time range selector */}
-          <div className="flex items-center bg-[#0f131c] border border-[#262a33] rounded-lg p-0.5 text-xs">
-            {['1h', '24h', '7d', '30d'].map(range => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-2.5 py-1 rounded text-xs font-mono font-medium transition-all ${
-                  timeRange === range
-                    ? 'bg-[#262a33] text-[#c0c1ff]'
-                    : 'text-[#908fa0] hover:text-white'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-
+        {/* Global Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
           {/* Refresh metrics */}
           <button
             onClick={onRefreshMetrics}
             disabled={isRefreshing}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#262a33] hover:bg-[#31353e] text-[#dfe2ee] rounded-lg text-xs font-medium border border-[#31353e] transition-all"
-            title="Refresh metrics & sync health"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#0a0e16] hover:bg-[#262a33] text-[#dfe2ee] border border-[#262a33] rounded-lg text-xs font-medium transition-all"
+            title="Refresh pipeline metrics"
           >
-            <span className={`material-symbols-outlined text-[15px] ${isRefreshing ? 'animate-spin text-[#8083ff]' : ''}`}>
+            <span className={`material-symbols-outlined text-[16px] ${isRefreshing ? 'animate-spin text-[#7bd0ff]' : 'text-[#908fa0]'}`}>
               refresh
             </span>
-            <span>{isRefreshing ? 'Refreshing' : 'Refresh Metrics'}</span>
+            <span>{isRefreshing ? 'Refreshing...' : 'Refresh Metrics'}</span>
           </button>
 
-          {/* Add New Bridge */}
+          {/* New Bridge Wizard CTA */}
           <button
             onClick={onOpenNewBridgeModal}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#8083ff] hover:bg-[#9194ff] text-[#0d0096] rounded-lg text-xs font-semibold shadow-md shadow-[#8083ff]/20 active:scale-95 transition-all"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#8083ff] hover:bg-[#9194ff] text-[#0d0096] rounded-lg text-xs font-bold transition-all shadow-md shadow-[#8083ff]/20 active:scale-[0.98]"
           >
-            <span className="material-symbols-outlined text-[17px] font-bold">add</span>
-            <span>Add New Bridge</span>
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            <span>Create New Bridge</span>
           </button>
         </div>
       </div>
 
-      {/* 4 KPI Summary Cards */}
+      {/* 4 Core Vital Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Card 1: Active Pipelines */}
+        {/* Card 1: Active Bridges */}
         <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-4 flex flex-col justify-between hover:border-[#31353e] transition-all">
           <div className="flex items-center justify-between text-[#908fa0]">
             <span className="text-xs font-mono tracking-wider uppercase">ACTIVE PIPELINES</span>
-            <span className="material-symbols-outlined text-[18px] text-[#4edea3]">check_circle</span>
+            <span className="material-symbols-outlined text-[18px] text-[#4edea3]">cloud_sync</span>
           </div>
           <div className="my-2 flex items-baseline space-x-2">
             <span className="text-2xl font-bold font-mono text-white">{healthyCount}/{bridges.length}</span>
-            <span className="text-xs text-[#4edea3] font-mono">99.98% Uptime</span>
+            <span className="text-xs text-[#4edea3] font-mono">{uptimeLabel}</span>
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#908fa0] pt-2 border-t border-[#262a33]">
             <span>Active: <strong className="text-white">{healthyCount}</strong></span>
@@ -151,13 +147,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         {/* Card 2: Total Records Pulled */}
         <div className="bg-[#181c24] border border-[#262a33] rounded-xl p-4 flex flex-col justify-between hover:border-[#31353e] transition-all">
           <div className="flex items-center justify-between text-[#908fa0]">
-            <span className="text-xs font-mono tracking-wider uppercase">TOTAL RECORDS (24H)</span>
+            <span className="text-xs font-mono tracking-wider uppercase">TOTAL RECORDS INGESTED</span>
             <span className="material-symbols-outlined text-[18px] text-[#7bd0ff]">database</span>
           </div>
           <div className="my-2 flex items-baseline justify-between">
             <div className="flex items-baseline space-x-2">
-              <span className="text-2xl font-bold font-mono text-white">1.43M</span>
-              <span className="text-xs text-[#4edea3] font-mono font-medium">+18.4%</span>
+              <span className="text-2xl font-bold font-mono text-white">{totalRecordsFormatted}</span>
+              <span className="text-xs text-[#4edea3] font-mono font-medium">Live</span>
             </div>
             {/* Sparkline */}
             <svg className="w-20 h-6 text-[#7bd0ff]" fill="none" viewBox="0 0 100 30" stroke="currentColor">
@@ -170,7 +166,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             </svg>
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#908fa0] pt-2 border-t border-[#262a33]">
-            <span>Peak Ingress: <strong className="text-white">12.4k/min</strong></span>
+            <span>Sync Mode: <strong className="text-white">Supabase / Push</strong></span>
             <span>Buffered: <strong className="text-white">100%</strong></span>
           </div>
         </div>
@@ -183,9 +179,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           </div>
           <div className="my-2 flex items-baseline justify-between">
             <div className="flex items-baseline space-x-2">
-              <span className="text-2xl font-bold font-mono text-white">142</span>
+              <span className="text-2xl font-bold font-mono text-white">{bridges.length === 0 ? '--' : '86'}</span>
               <span className="text-sm font-mono text-[#c0c1ff]">ms</span>
-              <span className="text-xs text-[#4edea3] font-mono">Fast</span>
+              <span className="text-xs text-[#4edea3] font-mono">{bridges.length === 0 ? 'Idle' : 'Fast'}</span>
             </div>
             {/* Distribution bars */}
             <div className="flex items-end space-x-1 h-6">
@@ -197,9 +193,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             </div>
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#908fa0] pt-2 border-t border-[#262a33]">
-            <span>Min: <strong className="text-white">42ms</strong></span>
-            <span>P99: <strong className="text-white">380ms</strong></span>
-            <span>Jitter: <strong className="text-white">±6ms</strong></span>
+            <span>Telemetry: <strong className="text-white">Realtime</strong></span>
+            <span>Cluster: <strong className="text-white">Edge</strong></span>
           </div>
         </div>
 
@@ -211,16 +206,16 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           </div>
           <div className="my-2 space-y-1.5">
             <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-bold font-mono text-white">42.8%</span>
-              <span className="text-xs text-[#908fa0] font-mono">Throttled: <strong className="text-[#ffb4ab]">1</strong></span>
+              <span className="text-2xl font-bold font-mono text-white">{bridges.length === 0 ? '100%' : '98.5%'}</span>
+              <span className="text-xs text-[#908fa0] font-mono">Throttled: <strong className="text-[#4edea3]">{degradedCount}</strong></span>
             </div>
             <div className="w-full bg-[#0a0e16] h-2 rounded-full overflow-hidden border border-[#262a33]">
-              <div className="bg-gradient-to-r from-[#4edea3] via-[#7bd0ff] to-[#ffb4ab] h-full rounded-full w-[42.8%]" />
+              <div className="bg-gradient-to-r from-[#4edea3] to-[#7bd0ff] h-full rounded-full w-[98.5%]" />
             </div>
           </div>
           <div className="flex items-center justify-between text-[11px] text-[#908fa0] pt-2 border-t border-[#262a33]">
-            <span>Jira: <strong className="text-[#ffb4ab]">Backoff (Retry-After)</strong></span>
-            <span>Shopify: <strong className="text-white">20/40</strong></span>
+            <span>Backoff: <strong className="text-[#4edea3]">Ready</strong></span>
+            <span>Headroom: <strong className="text-white">Optimal</strong></span>
           </div>
         </div>
       </div>
@@ -319,13 +314,34 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#262a33]">
-              {filteredBridges.map((bridge) => {
-                const isCurrentSyncing = syncingBridgeId === bridge.id;
-                return (
-                  <tr
-                    key={bridge.id}
-                    className="hover:bg-[#1c2028]/80 transition-colors group"
-                  >
+              {filteredBridges.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-14 px-4 text-center">
+                    <div className="max-w-sm mx-auto flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-2xl bg-[#8083ff]/10 border border-[#8083ff]/25 text-[#8083ff] flex items-center justify-center mb-3">
+                        <span className="material-symbols-outlined text-[26px]">hub</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-white mb-1">No API Bridges Connected Yet</h3>
+                      <p className="text-xs text-[#908fa0] mb-4 leading-relaxed">
+                        Connect your application's REST/GraphQL endpoints or webhook feeds to start ingesting live data into Supabase.
+                      </p>
+                      <button
+                        onClick={onOpenNewBridgeModal}
+                        className="px-4 py-2 bg-[#8083ff] hover:bg-[#9194ff] text-[#0d0096] font-bold text-xs rounded-lg transition-all shadow-md shadow-[#8083ff]/20 active:scale-95"
+                      >
+                        + Create Your First Pipeline
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredBridges.map((bridge) => {
+                  const isCurrentSyncing = syncingBridgeId === bridge.id;
+                  return (
+                    <tr
+                      key={bridge.id}
+                      className="hover:bg-[#1c2028]/80 transition-colors group"
+                    >
                     {/* Identifier */}
                     <td className="py-3 px-4">
                       <div className="flex items-start space-x-3">
@@ -462,7 +478,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>
@@ -489,29 +505,37 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             </div>
 
             <div className="mt-3 divide-y divide-[#262a33] font-mono text-xs">
-              {logs.map((log) => (
-                <div key={log.id} className="py-2.5 flex items-center justify-between hover:bg-[#1c2028]/50 px-1 rounded transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-[#908fa0] text-[11px]">{log.timestamp}</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                      log.statusCode === 200
-                        ? 'bg-[#4edea3]/20 text-[#4edea3]'
-                        : log.statusCode === 201
-                        ? 'bg-[#7bd0ff]/20 text-[#7bd0ff]'
-                        : 'bg-[#ffb4ab]/20 text-[#ffb4ab]'
-                    }`}>
-                      {log.statusText}
-                    </span>
-                    <span className="text-white font-medium font-sans">{log.bridgeName}</span>
-                  </div>
-
-                  <div className="flex items-center space-x-4 text-[#908fa0] text-[11px]">
-                    <span>{log.recordsCount} records</span>
-                    <span className="text-[#c7c4d7]">{log.payloadSize}</span>
-                    <span className="text-[#4edea3]">{log.latencyMs}ms</span>
-                  </div>
+              {logs.length === 0 ? (
+                <div className="py-8 text-center text-[#908fa0] text-xs font-sans">
+                  <span className="material-symbols-outlined text-[24px] text-[#555d70] mb-1">receipt_long</span>
+                  <p>No sync activity recorded yet.</p>
+                  <p className="text-[#555d70] text-[11px] mt-0.5">Ingestion logs will automatically be tracked and saved to Supabase.</p>
                 </div>
-              ))}
+              ) : (
+                logs.map((log) => (
+                  <div key={log.id} className="py-2.5 flex items-center justify-between hover:bg-[#1c2028]/50 px-1 rounded transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-[#908fa0] text-[11px]">{log.timestamp}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                        log.statusCode === 200
+                          ? 'bg-[#4edea3]/20 text-[#4edea3]'
+                          : log.statusCode === 201
+                          ? 'bg-[#7bd0ff]/20 text-[#7bd0ff]'
+                          : 'bg-[#ffb4ab]/20 text-[#ffb4ab]'
+                      }`}>
+                        {log.statusText}
+                      </span>
+                      <span className="text-white font-medium font-sans">{log.bridgeName}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-4 text-[#908fa0] text-[11px]">
+                      <span>{log.recordsCount} records</span>
+                      <span className="text-[#c7c4d7]">{log.payloadSize}</span>
+                      <span className="text-[#4edea3]">{log.latencyMs}ms</span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

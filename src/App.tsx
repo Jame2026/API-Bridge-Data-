@@ -42,7 +42,7 @@ import { GenerateSqlModal } from './components/modals/GenerateSqlModal';
 export default function App() {
   const [currentView, setCurrentView] = useState<NavView>('overview-bridges');
   const [bridges, setBridges] = useState<BridgePipeline[]>(INITIAL_BRIDGES);
-  const [selectedBridgeId, setSelectedBridgeId] = useState<string>('shopify-orders');
+  const [selectedBridgeId, setSelectedBridgeId] = useState<string>('');
   const [logs, setLogs] = useState<SyncActivityLog[]>(INITIAL_LOGS);
   const [schemaMappings, setSchemaMappings] = useState<SchemaMapping[]>(INITIAL_SCHEMA_MAPPINGS);
   const [tabularRecords, setTabularRecords] = useState<TabularRecord[]>(INITIAL_TABULAR_RECORDS);
@@ -70,7 +70,7 @@ export default function App() {
     }, 3200);
   };
 
-  const selectedBridge = bridges.find(b => b.id === selectedBridgeId) || bridges[0];
+  const selectedBridge = bridges.find(b => b.id === selectedBridgeId) || (bridges.length > 0 ? bridges[0] : null);
 
   // Hydrate from Supabase on startup if configured
   useEffect(() => {
@@ -78,6 +78,7 @@ export default function App() {
       fetchBridgesFromSupabase().then((remoteBridges) => {
         if (remoteBridges && remoteBridges.length > 0) {
           setBridges(remoteBridges);
+          setSelectedBridgeId(remoteBridges[0].id);
         }
       });
       fetchSyncLogsFromSupabase().then((remoteLogs) => {
@@ -90,8 +91,13 @@ export default function App() {
 
   // Trigger manual sync across active pipelines
   const handleTriggerSync = () => {
+    if (bridges.length === 0) {
+      showToast('No active pipelines found. Click "+ Create Pipeline" to connect your API first.', 'info');
+      return;
+    }
+
     setIsSyncing(true);
-    showToast('Triggering manual mesh ingestion across active pipelines...', 'info');
+    showToast(`Triggering manual ingestion across ${bridges.length} pipeline(s)...`, 'info');
 
     setTimeout(() => {
       setIsSyncing(false);
@@ -99,27 +105,28 @@ export default function App() {
       setBridges(prev =>
         prev.map(b =>
           b.status === 'healthy'
-            ? { ...b, recordsSynced: b.recordsSynced + 250, lastSync: 'Just now' }
+            ? { ...b, recordsSynced: b.recordsSynced + 1, lastSync: 'Just now' }
             : b
         )
       );
 
       // Prepend a fresh log
+      const activeBridge = bridges.find(b => b.status === 'healthy') || bridges[0];
       const newLog: SyncActivityLog = {
         id: `log-${Date.now()}`,
         timestamp: new Date().toTimeString().slice(0, 12),
         statusCode: 200,
         statusText: '200 OK',
-        bridgeName: 'Shopify Store Orders',
-        recordsCount: 250,
-        payloadSize: '184.2 KB',
-        latencyMs: 138
+        bridgeName: activeBridge ? activeBridge.name : 'API Pipeline',
+        recordsCount: 1,
+        payloadSize: '2.4 KB',
+        latencyMs: 86
       };
       setLogs(prev => [newLog, ...prev.slice(0, 15)]);
       recordSyncActivityToSupabase(newLog);
 
-      showToast('Ingestion synchronized successfully: 1,250 new records buffered.', 'success');
-    }, 1400);
+      showToast('Ingestion synchronized successfully.', 'success');
+    }, 1200);
   };
 
   // Trigger single bridge sync
@@ -272,13 +279,31 @@ export default function App() {
           )}
 
           {currentView === 'connect-auth' && (
-            <ConnectAuthView
-              bridge={selectedBridge}
-              onUpdateBridge={handleUpdateBridge}
-              onRunDryRun={() => setShowDryRunModal(true)}
-              onDeployPipeline={() => setShowSuccessModal(true)}
-              onCancel={() => setCurrentView('overview-bridges')}
-            />
+            selectedBridge ? (
+              <ConnectAuthView
+                bridge={selectedBridge}
+                onUpdateBridge={handleUpdateBridge}
+                onRunDryRun={() => setShowDryRunModal(true)}
+                onDeployPipeline={() => setShowSuccessModal(true)}
+                onCancel={() => setCurrentView('overview-bridges')}
+              />
+            ) : (
+              <div className="p-8 max-w-md mx-auto mt-20 text-center bg-[#181c24] border border-[#262a33] rounded-2xl shadow-2xl">
+                <div className="w-14 h-14 rounded-2xl bg-[#8083ff]/15 border border-[#8083ff]/30 text-[#8083ff] flex items-center justify-center mx-auto mb-4">
+                  <span className="material-symbols-outlined text-[30px]">settings_ethernet</span>
+                </div>
+                <h2 className="text-base font-bold text-white mb-1.5">No Pipeline Selected</h2>
+                <p className="text-xs text-[#908fa0] mb-5">
+                  Create a new pipeline or select one to configure its API endpoint, authentication strategy, headers, and polling schedule.
+                </p>
+                <button
+                  onClick={() => setShowNewBridgeModal(true)}
+                  className="px-4 py-2 bg-[#8083ff] hover:bg-[#9194ff] text-[#0d0096] font-semibold text-xs rounded-lg transition-all shadow-lg shadow-[#8083ff]/20"
+                >
+                  + Create Your First Pipeline
+                </button>
+              </div>
+            )
           )}
 
           {currentView === 'fetch-inspector' && (
@@ -325,28 +350,32 @@ export default function App() {
       />
 
       {/* 2. Pipeline Dry-Run & Verification */}
-      <DryRunModal
-        isOpen={showDryRunModal}
-        onClose={() => setShowDryRunModal(false)}
-        bridge={selectedBridge}
-        onCompleteSuccess={() => {
-          setShowDryRunModal(false);
-          setShowSuccessModal(true);
-        }}
-        onTriggerFailureDiagnostic={() => {
-          setShowDryRunModal(false);
-          setShowFailureModal(true);
-        }}
-      />
+      {selectedBridge && (
+        <DryRunModal
+          isOpen={showDryRunModal}
+          onClose={() => setShowDryRunModal(false)}
+          bridge={selectedBridge}
+          onCompleteSuccess={() => {
+            setShowDryRunModal(false);
+            setShowSuccessModal(true);
+          }}
+          onTriggerFailureDiagnostic={() => {
+            setShowDryRunModal(false);
+            setShowFailureModal(true);
+          }}
+        />
+      )}
 
       {/* 3. Bridge Connector Deployed Successfully */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        bridge={selectedBridge}
-        onGoToInspector={() => setCurrentView('fetch-inspector')}
-        onGoToDashboard={() => setCurrentView('overview-bridges')}
-      />
+      {selectedBridge && (
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          bridge={selectedBridge}
+          onGoToInspector={() => setCurrentView('fetch-inspector')}
+          onGoToDashboard={() => setCurrentView('overview-bridges')}
+        />
+      )}
 
       {/* 4. Bridge Verification Failed Diagnostic Modal */}
       <FailureModal

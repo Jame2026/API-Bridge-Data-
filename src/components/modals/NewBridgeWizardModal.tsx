@@ -21,9 +21,9 @@ export const NewBridgeWizardModal: React.FC<NewBridgeWizardModalProps> = ({
 
   // Step 2 state
   const [authStrategy, setAuthStrategy] = useState<'Bearer Token' | 'OAuth 2.0 (PKCE)' | 'API Key (Vault)' | 'Basic (API Token)'>('Bearer Token');
-  const [domainPrefix, setDomainPrefix] = useState('acme-global');
-  const [apiVersion, setApiVersion] = useState('2024-01');
-  const [secretToken, setSecretToken] = useState('shpat_99ab283fec01a89c4d912440192e44');
+  const [domainPrefix, setDomainPrefix] = useState('');
+  const [apiVersion, setApiVersion] = useState('v1');
+  const [secretToken, setSecretToken] = useState('');
   const [showSecret, setShowSecret] = useState(false);
   const [scopes, setScopes] = useState<TemplateScope[]>(selectedTemplate.scopes);
   const [handshakeTested, setHandshakeTested] = useState(false);

@@ -38,7 +38,7 @@ export const FetchInspectorView: React.FC<FetchInspectorViewProps> = ({
   const [newCalcRule, setNewCalcRule] = useState('Divide(total_price, item_count)');
   const [newCalcType, setNewCalcType] = useState<SchemaMapping['targetType']>('Decimal/Currency');
 
-  const selectedBridge = bridges.find(b => b.id === selectedBridgeId) || bridges[0];
+  const selectedBridge = bridges.find(b => b.id === selectedBridgeId) || (bridges.length > 0 ? bridges[0] : null);
 
   const handleTypeChange = (id: string, newType: SchemaMapping['targetType']) => {
     setMappings(prev => prev.map(m => m.id === id ? { ...m, targetType: newType } : m));
@@ -50,42 +50,44 @@ export const FetchInspectorView: React.FC<FetchInspectorViewProps> = ({
     setIsSaved(false);
   };
 
-  const handleSaveSchemaMap = () => {
-    onUpdateSchemaMappings(mappings);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2500);
-  };
-
   const handleAddCalculation = () => {
-    if (!newCalcOutput.trim()) return;
-    const newMapping: SchemaMapping = {
+    if (!newCalcOutput.trim() || !newCalcRule.trim()) return;
+    const newField: SchemaMapping = {
       id: `sm-${Date.now()}`,
-      sourceKey: newCalcSource,
+      sourceKey: newCalcSource.trim(),
       targetType: newCalcType,
       outputField: newCalcOutput.trim(),
-      transformRule: newCalcRule,
-      sampleValue: '249.50',
+      transformRule: newCalcRule.trim(),
+      sampleValue: 'computed',
       state: 'computed',
-      constraint: 'NUMERIC(10,2)'
+      constraint: 'NUMERIC(12,2)'
     };
-    setMappings([...mappings, newMapping]);
+    const updated = [...mappings, newField];
+    setMappings(updated);
+    onUpdateSchemaMappings(updated);
     setShowAddCalc(false);
-    setIsSaved(false);
+    setNewCalcOutput('');
+    setNewCalcRule('');
   };
 
   const handleAutoInfer = () => {
-    // Reset to initial clean state with toast
-    setMappings(schemaMappings);
+    onUpdateSchemaMappings(mappings);
     setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+    setTimeout(() => setIsSaved(false), 2400);
+  };
+
+  const handleSaveSchemaMap = () => {
+    onUpdateSchemaMappings(mappings);
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2400);
   };
 
   const handleExportCSV = () => {
-    const headers = ['Order ID', 'Invoice #', 'Revenue Amount', 'Timestamp (UTC)', 'Customer Email', 'Items', 'Status'];
+    const headers = ['Order ID', 'Invoice #', 'Revenue', 'Timestamp', 'Customer Email', 'Items', 'Status'];
     const rows = tabularRecords.map(r => [
       r.order_id,
       r.invoice_number,
-      r.revenue_amount,
+      `"${r.revenue_amount}"`,
       r.timestamp,
       r.customer_email,
       r.item_count,
@@ -105,7 +107,7 @@ export const FetchInspectorView: React.FC<FetchInspectorViewProps> = ({
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(RAW_JSON_PAYLOAD_SAMPLE, null, 2));
     const dl = document.createElement('a');
     dl.setAttribute("href", dataStr);
-    dl.setAttribute("download", `${selectedBridge.id}-raw-snapshot.json`);
+    dl.setAttribute("download", `${selectedBridge ? selectedBridge.id : 'pipeline'}-raw-snapshot.json`);
     document.body.appendChild(dl);
     dl.click();
     dl.remove();
@@ -118,6 +120,20 @@ export const FetchInspectorView: React.FC<FetchInspectorViewProps> = ({
   };
 
   const rawJsonFormatted = JSON.stringify(RAW_JSON_PAYLOAD_SAMPLE, null, 2);
+
+  if (!selectedBridge) {
+    return (
+      <div className="p-8 max-w-md mx-auto mt-20 text-center bg-[#181c24] border border-[#262a33] rounded-2xl shadow-2xl">
+        <div className="w-14 h-14 rounded-2xl bg-[#8083ff]/15 border border-[#8083ff]/30 text-[#8083ff] flex items-center justify-center mx-auto mb-4">
+          <span className="material-symbols-outlined text-[30px]">terminal</span>
+        </div>
+        <h2 className="text-base font-bold text-white mb-1.5">No Active Pipelines To Inspect</h2>
+        <p className="text-xs text-[#908fa0] mb-5">
+          Connect your application's API pipeline first to test live endpoints, inspect JSON responses, and map schemas.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 p-5 max-w-[1600px] mx-auto">
