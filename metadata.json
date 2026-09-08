@@ -1,0 +1,6 @@
+{
+  "name": "API Data Bridge",
+  "description": "Enterprise API integration middleware, pipeline orchestrator, schema transformer, and operational telemetry platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
