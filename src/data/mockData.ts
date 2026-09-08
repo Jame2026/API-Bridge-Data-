@@ -1,185 +1,140 @@
-import { BridgePipeline, SyncActivityLog, ConnectorTemplate, SchemaMapping, TabularRecord } from '../types';
+import { Project, UserActivity, UsageReport } from '../types';
 
-/**
- * INITIAL EMPTY STATE
- * No mock data: The application connects purely to your own live project system,
- * APIs, and Supabase database.
- */
-export const INITIAL_BRIDGES: BridgePipeline[] = [];
-
-export const INITIAL_LOGS: SyncActivityLog[] = [];
-
-export const INITIAL_SCHEMA_MAPPINGS: SchemaMapping[] = [];
-
-export const INITIAL_TABULAR_RECORDS: TabularRecord[] = [];
-
-export const RAW_JSON_PAYLOAD_SAMPLE: Record<string, any> = {};
-
-export const CONNECTOR_TEMPLATES: ConnectorTemplate[] = [
+export const INITIAL_PROJECTS: Project[] = [
   {
-    id: 'tpl-custom',
-    title: 'Custom REST / GraphQL API',
-    version: 'Engine v2.4',
-    category: 'custom',
-    description: 'Connect your own backend application, microservice, internal API, webhook, or GraphQL server.',
-    protocols: ['REST', 'GraphQL', 'Webhooks'],
-    avgPoll: 'Configurable',
-    rateLimit: 'User Defined',
-    icon: 'tune',
-    accentColor: '#8083ff',
-    defaultEndpoint: 'https://api.yourdomain.com/v1/data',
-    defaultAuth: 'Bearer Token',
-    defaultName: 'My Application Pipeline',
-    scopes: [
-      {
-        id: 'cu-sc-1',
-        name: 'Full Read Access',
-        rawScopes: 'read:all',
-        description: 'Primary data ingestion scope.',
-        required: true,
-        checked: true
-      },
-      {
-        id: 'cu-sc-2',
-        name: 'Incremental Sync Events',
-        rawScopes: 'events:read',
-        description: 'Capture updated and inserted records since last sync epoch.',
-        checked: true
-      }
-    ]
+    id: 'prj_billing_core',
+    name: 'Core Billing Engine',
+    slug: 'billing-engine',
+    description: 'Internal subscription billing, invoice generation, and tier upgrade ledger.',
+    environment: 'production',
+    baseUrl: 'https://billing.internal.corp',
+    icon: 'payments',
+    color: '#8083ff',
+    createdAt: '2026-08-01T00:00:00Z',
+    updatedAt: '2026-09-08T00:00:00Z',
   },
   {
-    id: 'tpl-shopify',
-    title: 'Shopify Admin API',
-    version: 'v2024-01',
-    category: 'ecommerce',
-    description: 'Pull orders, products, inventory changes, and customer transactions via GraphQL and REST Admin APIs with cursor pagination.',
-    protocols: ['REST', 'GraphQL', 'Webhooks'],
-    avgPoll: '5-15 min',
-    rateLimit: '40 calls / 2 req/s refill',
-    icon: 'shopping_bag',
-    accentColor: '#4edea3',
-    defaultEndpoint: 'https://{store_name}.myshopify.com/admin/api/2024-01/orders.json',
-    defaultAuth: 'Bearer Token (Custom App Token)',
-    defaultName: 'Shopify Store Orders',
-    scopes: [
-      {
-        id: 'sc-1',
-        name: 'Orders & Transactions',
-        rawScopes: 'read_orders, read_all_orders',
-        description: 'Read-only access to customer sales, line items, and fulfillment history.',
-        required: true,
-        checked: true
-      },
-      {
-        id: 'sc-2',
-        name: 'Customer Personally Identifiable Information (PII)',
-        rawScopes: 'read_customers',
-        description: 'Includes buyer full names, shipping addresses, phone numbers, and emails.',
-        badge: 'High Sensitivity PII',
-        piiLevel: 'high',
-        checked: true
-      }
-    ]
+    id: 'prj_auth_sso',
+    name: 'Enterprise SSO & IAM',
+    slug: 'auth-sso',
+    description: 'Single sign-on identity federation, role assignment, and access audits.',
+    environment: 'production',
+    baseUrl: 'https://auth.internal.corp',
+    icon: 'shield_person',
+    color: '#4edea3',
+    createdAt: '2026-08-10T00:00:00Z',
+    updatedAt: '2026-09-08T00:00:00Z',
   },
   {
-    id: 'tpl-stripe',
-    title: 'Stripe Billing & Ledger',
-    version: 'v1 / 2023-10-16',
-    category: 'ecommerce',
-    description: 'High-frequency transaction streaming, balance changes, invoices, and payment intents with webhook catch-up.',
-    protocols: ['REST', 'Event Stream'],
-    avgPoll: 'Real-time Webhook',
-    rateLimit: '100 req/sec',
-    icon: 'credit_card',
-    accentColor: '#c0c1ff',
-    defaultEndpoint: 'https://api.stripe.com/v1/balance_transactions',
-    defaultAuth: 'Restricted Secret Key',
-    defaultName: 'Stripe Financial Ledger',
-    scopes: [
-      {
-        id: 'str-sc-1',
-        name: 'Charges & Balance Transactions',
-        rawScopes: 'rak_charges_read, rak_balance_read',
-        description: 'Ingest all settlement ledgers and transaction fees.',
-        required: true,
-        checked: true
-      }
-    ]
+    id: 'prj_analytics_pipeline',
+    name: 'Customer Analytics Hub',
+    slug: 'analytics-hub',
+    description: 'Behavioral event ingestion, cohort analysis, and executive KPI reporting.',
+    environment: 'staging',
+    baseUrl: 'https://analytics-stage.internal.corp',
+    icon: 'query_stats',
+    color: '#7bd0ff',
+    createdAt: '2026-08-15T00:00:00Z',
+    updatedAt: '2026-09-08T00:00:00Z',
+  },
+];
+
+export const INITIAL_USER_ACTIVITIES: UserActivity[] = [
+  {
+    id: 'act_101',
+    projectId: 'prj_billing_core',
+    featureName: 'generate_invoice_pdf',
+    userId: 'usr_8492',
+    userEmail: 'sarah.finance@internal.corp',
+    actionType: 'export_data',
+    metadata: { invoiceId: 'INV-2026-899', format: 'pdf', durationMs: 430 },
+    timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
   },
   {
-    id: 'tpl-salesforce',
-    title: 'Salesforce CRM Platform',
-    version: 'v59.0 REST/SOQL',
-    category: 'crm',
-    description: 'Synchronize Accounts, Opportunities, Contacts, and custom object records with high-performance bulk query support.',
-    protocols: ['SOQL', 'REST', 'Bulk v2'],
-    avgPoll: '15-60 min',
-    rateLimit: '100k calls / 24h',
-    icon: 'cloud_sync',
-    accentColor: '#7bd0ff',
-    defaultEndpoint: 'https://{instance}.my.salesforce.com/services/data/v59.0/query',
-    defaultAuth: 'OAuth 2.0 (PKCE / JWT Bearer)',
-    defaultName: 'Salesforce CRM Pipeline',
-    scopes: [
-      {
-        id: 'sf-sc-1',
-        name: 'Standard CRM Objects',
-        rawScopes: 'api, id',
-        description: 'Access Account, Lead, and Opportunity records.',
-        required: true,
-        checked: true
-      }
-    ]
+    id: 'act_102',
+    projectId: 'prj_billing_core',
+    featureName: 'subscription_upgrade',
+    userId: 'usr_3910',
+    userEmail: 'david.ops@internal.corp',
+    actionType: 'feature_use',
+    metadata: { fromTier: 'starter', toTier: 'enterprise' },
+    timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
   },
   {
-    id: 'tpl-zendesk',
-    title: 'Zendesk Support Ticketing',
-    version: 'v2 Incremental Export',
-    category: 'support',
-    description: 'Export support tickets, satisfaction scores, ticket comments, and SLA breaches using cursor pagination.',
-    protocols: ['REST Incremental'],
-    avgPoll: '5-15 min',
-    rateLimit: '700 req/min',
-    icon: 'headset_mic',
-    accentColor: '#ffb4ab',
-    defaultEndpoint: 'https://{subdomain}.zendesk.com/api/v2/incremental/tickets.json',
-    defaultAuth: 'OAuth 2.0 PKCE',
-    defaultName: 'Zendesk Support Tickets',
-    scopes: [
-      {
-        id: 'zn-sc-1',
-        name: 'Tickets & Ticket Audits',
-        rawScopes: 'read:tickets',
-        description: 'Access ticket summaries, priorities, and audit timelines.',
-        required: true,
-        checked: true
-      }
-    ]
+    id: 'act_103',
+    projectId: 'prj_auth_sso',
+    featureName: 'okta_sso_login',
+    userId: 'usr_1024',
+    userEmail: 'dev.lead@internal.corp',
+    actionType: 'login',
+    metadata: { idp: 'okta', mfaMethod: 'fido2_key' },
+    timestamp: new Date(Date.now() - 1000 * 60 * 95).toISOString(),
   },
   {
-    id: 'tpl-jira',
-    title: 'Jira Cloud / Atlassian',
-    version: 'REST v3',
-    category: 'devops',
-    description: 'Ingest sprints, Epics, user stories, worklogs, and issue changelogs via JQL search pagination.',
-    protocols: ['REST', 'JQL'],
-    avgPoll: '15-30 min',
-    rateLimit: 'Adaptive Rate Limit',
-    icon: 'task_alt',
-    accentColor: '#7bd0ff',
-    defaultEndpoint: 'https://{domain}.atlassian.net/rest/api/3/search',
-    defaultAuth: 'Basic (Email + API Token)',
-    defaultName: 'Jira Sprint & Issue Sync',
-    scopes: [
-      {
-        id: 'jr-sc-1',
-        name: 'Read Jira Project Data',
-        rawScopes: 'read:jira-work',
-        description: 'Read issues, comments, worklogs, and attachments.',
-        required: true,
-        checked: true
-      }
-    ]
-  }
+    id: 'act_104',
+    projectId: 'prj_analytics_pipeline',
+    featureName: 'export_csv',
+    userId: 'usr_7721',
+    userEmail: 'product.analyst@internal.corp',
+    actionType: 'export_data',
+    metadata: { rows: 24500, timeWindowDays: 30 },
+    timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+  },
+  {
+    id: 'act_105',
+    projectId: 'prj_billing_core',
+    featureName: 'custom_tax_override',
+    userId: 'usr_8492',
+    userEmail: 'sarah.finance@internal.corp',
+    actionType: 'feature_use',
+    metadata: { region: 'EU-VAT', rate: 21.0 },
+    timestamp: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
+  },
+  {
+    id: 'act_106',
+    projectId: 'prj_auth_sso',
+    featureName: 'audit_log_review',
+    userId: 'usr_5001',
+    userEmail: 'secops@internal.corp',
+    actionType: 'feature_use',
+    metadata: { queriedEvents: 850 },
+    timestamp: new Date(Date.now() - 1000 * 60 * 720).toISOString(),
+  },
+];
+
+export const INITIAL_REPORTS: UsageReport[] = [
+  {
+    id: 'rep_billing_weekly',
+    title: 'Billing Engine - Weekly Usage & Adoption Audit',
+    projectId: 'prj_billing_core',
+    dateRange: '7d',
+    generatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    createdBy: 'Staff Engineer (Audit Ops)',
+    notes: 'Audit confirms invoice generator and tier upgrades are functioning with sub-500ms latency.',
+    summary: {
+      totalEvents: 420,
+      totalUsers: 18,
+      activeProjectsCount: 1,
+      topFeature: 'generate_invoice_pdf',
+      avgEventsPerUser: 23.3,
+      featureStats: [
+        { featureName: 'generate_invoice_pdf', actionCount: 210, uniqueUsersCount: 12, percentageShare: 50.0 },
+        { featureName: 'subscription_upgrade', actionCount: 140, uniqueUsersCount: 8, percentageShare: 33.3 },
+        { featureName: 'custom_tax_override', actionCount: 70, uniqueUsersCount: 4, percentageShare: 16.7 },
+      ],
+      dailyTrends: [
+        { date: '2026-09-02', eventCount: 45, activeUsers: 8 },
+        { date: '2026-09-03', eventCount: 62, activeUsers: 11 },
+        { date: '2026-09-04', eventCount: 78, activeUsers: 14 },
+        { date: '2026-09-05', eventCount: 84, activeUsers: 16 },
+        { date: '2026-09-06', eventCount: 55, activeUsers: 10 },
+        { date: '2026-09-07', eventCount: 50, activeUsers: 9 },
+        { date: '2026-09-08', eventCount: 46, activeUsers: 8 },
+      ],
+      topUsers: [
+        { userId: 'usr_8492', userEmail: 'sarah.finance@internal.corp', actionCount: 180, lastActive: '2026-09-08T09:00:00Z' },
+        { userId: 'usr_3910', userEmail: 'david.ops@internal.corp', actionCount: 120, lastActive: '2026-09-08T08:30:00Z' },
+      ],
+    },
+  },
 ];

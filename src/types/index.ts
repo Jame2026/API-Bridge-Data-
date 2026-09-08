@@ -1,10 +1,3 @@
-export type NavView =
-  | 'dashboard'
-  | 'reports'
-  | 'activity-explorer'
-  | 'projects'
-  | 'ingest-guide';
-
 export interface Project {
   id: string;
   name: string;
@@ -18,39 +11,28 @@ export interface Project {
   updatedAt: string;
 }
 
-export type ActionCategory =
-  | 'login'
-  | 'feature_used'
-  | 'item_created'
-  | 'export_run'
-  | 'page_view'
-  | 'session_start'
-  | 'settings_change'
-  | 'other';
-
 export interface UserActivity {
   id: string;
   projectId: string;
   featureName: string;
   userId: string;
-  userEmail: string;
-  actionType: ActionCategory | string;
+  userEmail?: string;
+  actionType: string;
   metadata?: Record<string, any>;
   timestamp: string;
 }
 
 export interface FeatureUsageStat {
   featureName: string;
-  count: number;
-  percentage: number;
-  uniqueUsers: number;
+  actionCount: number;
+  uniqueUsersCount: number;
+  percentageShare: number;
 }
 
 export interface DailyTrendPoint {
   date: string;
-  formattedDate: string;
   eventCount: number;
-  userCount: number;
+  activeUsers: number;
 }
 
 export interface TopUserStat {
@@ -58,7 +40,6 @@ export interface TopUserStat {
   userEmail: string;
   actionCount: number;
   lastActive: string;
-  primaryProject?: string;
 }
 
 export interface UsageMetricsSummary {
@@ -75,8 +56,8 @@ export interface UsageMetricsSummary {
 export interface UsageReport {
   id: string;
   title: string;
-  projectId: string; // 'all' or specific project ID
-  dateRange: 'today' | '7d' | '30d' | '90d' | 'custom';
+  projectId: string;
+  dateRange: 'today' | '7d' | '30d' | '90d' | 'custom' | 'all';
   startDate?: string;
   endDate?: string;
   generatedAt: string;
@@ -85,10 +66,9 @@ export interface UsageReport {
   notes?: string;
 }
 
-export interface ReportFilter {
-  projectId: string;
-  featureName?: string;
-  userId?: string;
-  actionType?: string;
-  dateRange: 'today' | '7d' | '30d' | '90d' | 'all';
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'auditor' | 'viewer';
 }

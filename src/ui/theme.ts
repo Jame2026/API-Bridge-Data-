@@ -1,0 +1,27 @@
+export const theme = {
+  colors: {
+    bg: '#0a0e16',
+    surface: '#141822',
+    surfaceCard: '#181c24',
+    border: '#262a33',
+    borderLight: '#31353e',
+    text: '#dfe2ee',
+    textMuted: '#908fa0',
+    primary: '#8083ff',
+    primaryHover: '#9194ff',
+    primaryBg: 'rgba(128, 131, 255, 0.15)',
+    success: '#4edea3',
+    successBg: 'rgba(78, 222, 163, 0.15)',
+    accent: '#7bd0ff',
+    accentBg: 'rgba(123, 208, 255, 0.15)',
+    error: '#ffb4ab',
+    errorBg: 'rgba(255, 180, 171, 0.15)',
+  },
+  radius: {
+    sm: '0.375rem',
+    md: '0.5rem',
+    lg: '0.75rem',
+    xl: '1rem',
+    full: '9999px',
+  },
+} as const;
